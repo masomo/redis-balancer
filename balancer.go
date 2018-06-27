@@ -4,15 +4,16 @@ import (
 	"sync/atomic"
 	"time"
 
-	"gopkg.in/redis.v3"
+	"github.com/gomodule/redigo/redis"
 )
 
+// BalanceMode type
 type BalanceMode int
 
 const (
-	// LeastConn picks the backend with the fewest connections.
+	// ModeLeastConn picks the backend with the fewest connections.
 	ModeLeastConn BalanceMode = iota
-	// FirstUp always picks the first available backend.
+	// ModeFirstUp always picks the first available backend.
 	ModeFirstUp
 	// ModeMinLatency always picks the backend with the minimal latency.
 	ModeMinLatency
@@ -37,7 +38,7 @@ type Balancer struct {
 func New(opts []Options, mode BalanceMode) *Balancer {
 	if len(opts) == 0 {
 		opts = []Options{
-			{Options: redis.Options{Network: "tcp", Addr: "127.0.0.1:6379"}},
+			{Network: "tcp", Addr: "127.0.0.1:6379"},
 		}
 	}
 
@@ -52,7 +53,7 @@ func New(opts []Options, mode BalanceMode) *Balancer {
 }
 
 // Next returns the next available redis client
-func (b *Balancer) Next() *redis.Client { return b.pickNext().client }
+func (b *Balancer) Next() *redis.Pool { return b.pickNext().client }
 
 // Close closes all connecitons in the balancer
 func (b *Balancer) Close() (err error) {
@@ -101,9 +102,10 @@ func (b *Balancer) pickNext() (backend *redisBackend) {
 
 // --------------------------------------------------------------------
 
-// Custom balancer options
+// Options for custom balancer
 type Options struct {
-	redis.Options
+	Addr    string
+	Network string
 
 	// Check interval, min 100ms, defaults to 1s
 	CheckInterval time.Duration

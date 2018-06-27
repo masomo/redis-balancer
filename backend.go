@@ -1,20 +1,18 @@
 package balancer
 
 import (
-	"regexp"
-	"strconv"
 	"sync/atomic"
 	"time"
 
-	"gopkg.in/redis.v3"
+	"github.com/gomodule/redigo/redis"
 	"gopkg.in/tomb.v2"
 )
 
-var pattern = regexp.MustCompile(`connected_clients:(\d+)`)
+const maxIdle = 256
 
 // Redis backend
 type redisBackend struct {
-	client *redis.Client
+	client *redis.Pool
 	opt    *Options
 
 	up, successes, failures int32
@@ -25,7 +23,7 @@ type redisBackend struct {
 
 func newRedisBackend(opt *Options) *redisBackend {
 	backend := &redisBackend{
-		client: redis.NewClient(&opt.Options),
+		client: redis.NewPool(func() (redis.Conn, error) { return redis.Dial(opt.Network, opt.Addr) }, maxIdle),
 		opt:    opt,
 		up:     1,
 
@@ -56,20 +54,18 @@ func (b *redisBackend) Close() error {
 
 func (b *redisBackend) ping() {
 	start := time.Now()
-	info, err := b.client.Info().Result()
+
+	conn := b.client.Get()
+	defer conn.Close()
+
+	_, err := conn.Do("PING")
 	if err != nil {
 		b.updateStatus(false)
 		return
 	}
-	atomic.StoreInt64(&b.latency, int64(time.Now().Sub(start)))
 
-	connval := pattern.FindStringSubmatch(info)
-	if len(connval) != 2 {
-		b.updateStatus(false)
-		return
-	}
-	numconns, _ := strconv.ParseInt(connval[1], 10, 64)
-	atomic.StoreInt64(&b.connections, numconns)
+	atomic.StoreInt64(&b.latency, int64(time.Now().Sub(start)))
+	atomic.StoreInt64(&b.connections, int64(b.client.ActiveCount()))
 
 	b.updateStatus(true)
 }
@@ -113,6 +109,5 @@ func (b *redisBackend) startLoop() {
 				b.ping()
 			}
 		}
-		return nil
 	})
 }

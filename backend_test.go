@@ -5,17 +5,16 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"gopkg.in/redis.v3"
 )
 
 var _ = Describe("redisBackend", func() {
 	var subject *redisBackend
 
 	BeforeEach(func() {
-		subject = newRedisBackend(&Options{Options: redis.Options{
+		subject = newRedisBackend(&Options{
 			Addr:    "localhost:6379",
 			Network: "tcp",
-		}, Rise: 2})
+			Rise:    2})
 	})
 
 	AfterEach(func() {

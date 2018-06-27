@@ -7,7 +7,6 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"gopkg.in/redis.v3"
 )
 
 var _ = Describe("Balancer", func() {
@@ -119,6 +118,6 @@ func TestSuite(t *testing.T) {
 
 func mockOpts(addr string) *Options {
 	return &Options{
-		Options: redis.Options{Network: "tcp", Addr: addr},
+		Network: "tcp", Addr: addr,
 	}
 }
