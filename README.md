@@ -1,6 +1,6 @@
-# redis-balancer [![Build Status](https://travis-ci.org/bsm/redis-balancer.png?branch=master)](https://travis-ci.org/bsm/redis-balancer)
+# redis-balancer [![Build Status](https://travis-ci.org/semihalev/redis-balancer.png?branch=master)](https://travis-ci.org/semihalev/redis-balancer)
 
-Simple load balancer for [Redis](http://redis.io). Wraps the underlying [Go-Redis](https://github.com/go-redis/redis) client.
+Simple load balancer for [Redis](http://redis.io). Wraps the underlying [Redigo](https://github.com/gomodule/redigo) pool.
 
 ## Example
 
