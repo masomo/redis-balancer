@@ -9,7 +9,7 @@ import (
 
 func main() {
 	clients := balancer.New(
-		[]balancer.Options{
+		[]*balancer.Options{
 			{Network: "tcp", Addr: "localhost:6379", CheckInterval: 600 * time.Millisecond},
 			{Network: "unix", Addr: "/tmp/redis.sock"},
 			{Network: "tcp", Addr: "host-2:6379", CheckInterval: 800 * time.Millisecond},

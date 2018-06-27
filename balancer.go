@@ -35,10 +35,10 @@ type Balancer struct {
 }
 
 // New initializes a new redis balancer
-func New(opts []Options, mode BalanceMode) *Balancer {
+func New(opts []*Options, mode BalanceMode) *Balancer {
 	if len(opts) == 0 {
-		opts = []Options{
-			{Network: "tcp", Addr: "127.0.0.1:6379"},
+		opts = []*Options{
+			&Options{Network: "tcp", Addr: "127.0.0.1:6379"},
 		}
 	}
 
@@ -47,7 +47,7 @@ func New(opts []Options, mode BalanceMode) *Balancer {
 		mode:     mode,
 	}
 	for i, opt := range opts {
-		balancer.selector[i] = newRedisBackend(&opt)
+		balancer.selector[i] = newRedisBackend(opt)
 	}
 	return balancer
 }

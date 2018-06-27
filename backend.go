@@ -23,14 +23,32 @@ type redisBackend struct {
 
 func newRedisBackend(opt *Options) *redisBackend {
 	backend := &redisBackend{
-		client: redis.NewPool(func() (redis.Conn, error) { return redis.Dial(opt.Network, opt.Addr) }, maxIdle),
-		opt:    opt,
-		up:     1,
+		client: &redis.Pool{
+			MaxIdle:     maxIdle,
+			IdleTimeout: time.Minute,
+			Dial: func() (redis.Conn, error) {
+				c, err := redis.Dial(opt.Network, opt.Addr)
+				if err != nil {
+					return nil, err
+				}
+				return c, err
+			},
+			TestOnBorrow: func(c redis.Conn, t time.Time) error {
+				if time.Since(t) < time.Minute {
+					return nil
+				}
+				_, err := c.Do("PING")
+				return err
+			},
+		},
+		opt: opt,
+		up:  1,
 
 		connections: 1e6,
 		latency:     int64(time.Minute),
 	}
 	backend.startLoop()
+
 	return backend
 }
 
