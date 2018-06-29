@@ -38,7 +38,7 @@ type Balancer struct {
 func New(opts []*Options, mode BalanceMode) *Balancer {
 	if len(opts) == 0 {
 		opts = []*Options{
-			&Options{Network: "tcp", Addr: "127.0.0.1:6379"},
+			&Options{Network: "tcp", Addr: "127.0.0.1:6379", MaxIdle: 1},
 		}
 	}
 
@@ -47,6 +47,10 @@ func New(opts []*Options, mode BalanceMode) *Balancer {
 		mode:     mode,
 	}
 	for i, opt := range opts {
+		if opt.MaxIdle == 0 {
+			opt.MaxIdle = 1
+		}
+
 		balancer.selector[i] = newRedisBackend(opt)
 	}
 	return balancer
@@ -106,6 +110,8 @@ func (b *Balancer) pickNext() (backend *redisBackend) {
 type Options struct {
 	Addr    string
 	Network string
+
+	MaxIdle int
 
 	// Check interval, min 100ms, defaults to 1s
 	CheckInterval time.Duration

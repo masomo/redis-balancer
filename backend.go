@@ -8,8 +8,6 @@ import (
 	"gopkg.in/tomb.v2"
 )
 
-const maxIdle = 256
-
 // Redis backend
 type redisBackend struct {
 	client *redis.Pool
@@ -24,7 +22,7 @@ type redisBackend struct {
 func newRedisBackend(opt *Options) *redisBackend {
 	backend := &redisBackend{
 		client: &redis.Pool{
-			MaxIdle:     maxIdle,
+			MaxIdle:     opt.MaxIdle,
 			IdleTimeout: time.Minute,
 			Dial: func() (redis.Conn, error) {
 				c, err := redis.Dial(opt.Network, opt.Addr)
